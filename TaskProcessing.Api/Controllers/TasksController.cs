@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskProcessing.Api.Data;
 using TaskProcessing.Api.DTOs;
+using TaskProcessing.Api.Enums;
 using TaskProcessing.Api.Models;
 
 namespace TaskProcessing.Api.Controllers
@@ -32,25 +33,43 @@ namespace TaskProcessing.Api.Controllers
             _context.Tasks.Add(taskItem);
             await _context.SaveChangesAsync();
 
-            var response = new TaskDetailsDto
-            {
-                Id = taskItem.Id,
-                Title = taskItem.Title,
-                Description = taskItem.Description,
-                Type = taskItem.Type,
-                Status = taskItem.Status,
-                PayloadJson = taskItem.PayloadJson,
-                ResultJson = taskItem.ResultJson,
-                ErrorMessage = taskItem.ErrorMessage,
-                RetryCount = taskItem.RetryCount,
-                MaxRetries = taskItem.MaxRetries,
-                CreatedAt = taskItem.CreatedAt,
-                UpdatedAt = taskItem.UpdatedAt,
-                StartedAt = taskItem.StartedAt,
-                CompletedAt = taskItem.CompletedAt
-            };
+            var response = MapToTaskDetailsDto(taskItem);
 
             return CreatedAtAction(nameof(GetTaskById), new { id = taskItem.Id }, response);
+        }
+
+        [HttpPost("{id}/retry")]
+        public async Task<ActionResult<TaskDetailsDto>> RetryTask(int id)
+        {
+            var taskItem = await _context.Tasks.FindAsync(id);
+
+            if (taskItem is null)
+            {
+                return NotFound();
+            }
+
+            if (taskItem.Status != Status.Failed)
+            {
+                return BadRequest("Only failed tasks can be retried.");
+            }
+
+            if (taskItem.RetryCount >= taskItem.MaxRetries)
+            {
+                return BadRequest("This task has reached its maximum retry limit.");
+            }
+
+            taskItem.Status = Status.Queued;
+            taskItem.ErrorMessage = null;
+            taskItem.ResultJson = null;
+            taskItem.StartedAt = null;
+            taskItem.CompletedAt = null;
+            taskItem.RetryCount += 1;
+            taskItem.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            var response = MapToTaskDetailsDto(taskItem);
+            return Ok(response);
         }
 
         [HttpGet]
@@ -79,7 +98,13 @@ namespace TaskProcessing.Api.Controllers
             {
                 return NotFound();
             }
-            var response = new TaskDetailsDto
+            var response = MapToTaskDetailsDto(taskItem);
+            return Ok(response);
+        }
+
+        private static TaskDetailsDto MapToTaskDetailsDto(TaskItem taskItem)
+        {
+            return new TaskDetailsDto
             {
                 Id = taskItem.Id,
                 Title = taskItem.Title,
@@ -96,7 +121,6 @@ namespace TaskProcessing.Api.Controllers
                 StartedAt = taskItem.StartedAt,
                 CompletedAt = taskItem.CompletedAt
             };
-            return Ok(response);
         }
 
 
