@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TaskProcessing.Api.Data;
 using TaskProcessing.Api.DTOs;
 using TaskProcessing.Api.Enums;
+using TaskProcessing.Api.Interfaces;
 using TaskProcessing.Api.Models;
 
 namespace TaskProcessing.Api.Controllers
@@ -12,115 +13,60 @@ namespace TaskProcessing.Api.Controllers
     [Route("api/[controller]")]
     public class TasksController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public TasksController(ApplicationDbContext context)
+        private readonly ITaskService _taskService;
+        public TasksController(ITaskService taskService)
         {
-            _context = context;
+            _taskService = taskService;
         }
 
         [HttpPost]
         public async Task<ActionResult<TaskDetailsDto>> CreateTask(CreateTaskRequestDto request)
         {
-            var taskItem = new TaskItem
-            {
-                Title = request.Title,
-                Description = request.Description,
-                Type = request.Type,
-                PayloadJson = request.PayloadJson
-            };
+            var createdTask = await _taskService.CreateTaskAsync(request);
 
-            _context.Tasks.Add(taskItem);
-            await _context.SaveChangesAsync();
-
-            var response = MapToTaskDetailsDto(taskItem);
-
-            return CreatedAtAction(nameof(GetTaskById), new { id = taskItem.Id }, response);
+            return CreatedAtAction(nameof(GetTaskById), new { id = createdTask.Id }, createdTask);
         }
 
-        [HttpPost("{id}/retry")]
-        public async Task<ActionResult<TaskDetailsDto>> RetryTask(int id)
-        {
-            var taskItem = await _context.Tasks.FindAsync(id);
-
-            if (taskItem is null)
-            {
-                return NotFound();
-            }
-
-            if (taskItem.Status != Status.Failed)
-            {
-                return BadRequest("Only failed tasks can be retried.");
-            }
-
-            if (taskItem.RetryCount >= taskItem.MaxRetries)
-            {
-                return BadRequest("This task has reached its maximum retry limit.");
-            }
-
-            taskItem.Status = Status.Queued;
-            taskItem.ErrorMessage = null;
-            taskItem.ResultJson = null;
-            taskItem.StartedAt = null;
-            taskItem.CompletedAt = null;
-            taskItem.RetryCount += 1;
-            taskItem.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            var response = MapToTaskDetailsDto(taskItem);
-            return Ok(response);
-        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskSummaryDto>>> GetTasks()
         {
-            var tasks = await _context.Tasks
-            .OrderByDescending(t => t.CreatedAt)
-            .Select(t => new TaskSummaryDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                Type = t.Type,
-                Status = t.Status,
-                CreatedAt = t.CreatedAt
-            })
-            .ToListAsync();
+            var tasks = await _taskService.GetTasksAsync();
+
             return Ok(tasks);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskDetailsDto>> GetTaskById(int id)
         {
-            var taskItem = await _context.Tasks.FindAsync(id);
+            var task = await _taskService.GetTaskByIdAsync(id);
 
-            if (taskItem is null)
+            if (task is null)
             {
                 return NotFound();
             }
-            var response = MapToTaskDetailsDto(taskItem);
-            return Ok(response);
+
+            return Ok(task);
         }
 
-        private static TaskDetailsDto MapToTaskDetailsDto(TaskItem taskItem)
+
+        [HttpPost("{id}/retry")]
+        public async Task<ActionResult<TaskDetailsDto>> RetryTask(int id)
         {
-            return new TaskDetailsDto
+            var (task, errorMessage) = await _taskService.RetryTaskAsync(id);
+
+            if (task is not null)
             {
-                Id = taskItem.Id,
-                Title = taskItem.Title,
-                Description = taskItem.Description,
-                Type = taskItem.Type,
-                Status = taskItem.Status,
-                PayloadJson = taskItem.PayloadJson,
-                ResultJson = taskItem.ResultJson,
-                ErrorMessage = taskItem.ErrorMessage,
-                RetryCount = taskItem.RetryCount,
-                MaxRetries = taskItem.MaxRetries,
-                CreatedAt = taskItem.CreatedAt,
-                UpdatedAt = taskItem.UpdatedAt,
-                StartedAt = taskItem.StartedAt,
-                CompletedAt = taskItem.CompletedAt
-            };
+                return Ok(task);
+            }
+
+            if (errorMessage == "task not found")
+            {
+                return NotFound();
+            }
+
+
+            return BadRequest(errorMessage);
         }
 
 
