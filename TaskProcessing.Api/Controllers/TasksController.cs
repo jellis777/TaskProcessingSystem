@@ -22,9 +22,17 @@ namespace TaskProcessing.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<TaskDetailsDto>> CreateTask(CreateTaskRequestDto request)
         {
-            var createdTask = await _taskService.CreateTaskAsync(request);
+            try
+            {
+                var createdTask = await _taskService.CreateTaskAsync(request);
+                return CreatedAtAction(nameof(GetTaskById), new { id = createdTask.Id }, createdTask);
 
-            return CreatedAtAction(nameof(GetTaskById), new { id = createdTask.Id }, createdTask);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+
         }
 
 

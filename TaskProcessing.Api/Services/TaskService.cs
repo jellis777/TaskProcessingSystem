@@ -5,11 +5,18 @@ using TaskProcessing.Api.Interfaces;
 using TaskProcessing.Api.Models;
 using TaskProcessing.Api.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace TaskProcessing.Api.Services
 {
     public class TaskService : ITaskService
     {
+        private static readonly HashSet<string> AllowedTaskTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "report-generation",
+            "text-summary",
+            "file-processing"
+        };
         private readonly ApplicationDbContext _context;
 
         public TaskService(ApplicationDbContext context)
@@ -18,11 +25,22 @@ namespace TaskProcessing.Api.Services
         }
         public async Task<TaskDetailsDto> CreateTaskAsync(CreateTaskRequestDto request)
         {
+            if (!AllowedTaskTypes.Contains(request.Type))
+            {
+                throw new ArgumentException(
+                    $"Unsupported task type. Allowed types are: {string.Join(", ", AllowedTaskTypes)}"
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.PayloadJson) && !IsValidJson(request.PayloadJson))
+            {
+                throw new ArgumentException("PayloadJson must be valid JSON.");
+            }
             var taskItem = new TaskItem
             {
-                Title = request.Title,
-                Description = request.Description,
-                Type = request.Type,
+                Title = request.Title.Trim(),
+                Description = request.Description.Trim(),
+                Type = request.Type.Trim(),
                 PayloadJson = request.PayloadJson
             };
 
@@ -123,6 +141,19 @@ namespace TaskProcessing.Api.Services
                     })
                     .ToList()
             };
+        }
+
+        private static bool IsValidJson(string json)
+        {
+            try
+            {
+                JsonDocument.Parse(json);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
