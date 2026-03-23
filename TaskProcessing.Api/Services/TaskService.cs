@@ -50,7 +50,9 @@ namespace TaskProcessing.Api.Services
 
         public async Task<TaskDetailsDto?> GetTaskByIdAsync(int id)
         {
-            var taskItem = await _context.Tasks.FindAsync(id);
+            var taskItem = await _context.Tasks
+                .Include(t => t.ProcessingLogs.OrderBy(log => log.CreatedAt))
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (taskItem is null)
             {
@@ -109,7 +111,17 @@ namespace TaskProcessing.Api.Services
                 CreatedAt = taskItem.CreatedAt,
                 UpdatedAt = taskItem.UpdatedAt,
                 StartedAt = taskItem.StartedAt,
-                CompletedAt = taskItem.CompletedAt
+                CompletedAt = taskItem.CompletedAt,
+                ProcessingLogs = taskItem.ProcessingLogs
+                    .OrderBy(log => log.CreatedAt)
+                    .Select(log => new TaskProcessingLogDto
+                    {
+                        Id = log.Id,
+                        Message = log.Message,
+                        Level = log.Level,
+                        CreatedAt = log.CreatedAt
+                    })
+                    .ToList()
             };
         }
     }

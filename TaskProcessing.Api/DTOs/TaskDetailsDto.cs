@@ -25,6 +25,7 @@ namespace TaskProcessing.Api.DTOs
 
         public int MaxRetries { get; set; }
 
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
@@ -32,5 +33,6 @@ namespace TaskProcessing.Api.DTOs
         public DateTime? StartedAt { get; set; }
 
         public DateTime? CompletedAt { get; set; }
+        public List<TaskProcessingLogDto> ProcessingLogs { get; set; } = new();
     }
 }

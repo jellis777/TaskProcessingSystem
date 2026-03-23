@@ -13,5 +13,6 @@ namespace TaskProcessing.Api.Data
         }
 
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
+        public DbSet<TaskProcessingLog> TaskProcessingLogs => Set<TaskProcessingLog>();
     }
 }

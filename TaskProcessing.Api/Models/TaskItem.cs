@@ -21,7 +21,7 @@ namespace TaskProcessing.Api.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? StartedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
-
+        public List<TaskProcessingLog> ProcessingLogs { get; set; } = new();
 
     }
 }
