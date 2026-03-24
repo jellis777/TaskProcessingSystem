@@ -29,7 +29,10 @@ export default function App() {
             gap: '1rem',
           }}
         >
-          <h1 style={{ margin: 0, fontSize: '1.5rem' }}>
+          <h1
+            className="text-2xl font-bold"
+            style={{ margin: 0, fontSize: '1.5rem' }}
+          >
             Task Processing System
           </h1>
           <nav style={{ display: 'flex', gap: '1rem' }}>
