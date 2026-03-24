@@ -20,6 +20,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<ITaskService, TaskService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+{
+    policy.WithOrigins("http://localhost:5175")
+    .AllowAnyHeader()
+    .AllowAnyMethod();
+});
+});
+
 var app = builder.Build();
 
 // Middleware
@@ -30,6 +40,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthorization();
 
