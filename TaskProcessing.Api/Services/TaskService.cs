@@ -99,7 +99,7 @@ namespace TaskProcessing.Api.Services
             taskItem.ResultJson = null;
             taskItem.StartedAt = null;
             taskItem.CompletedAt = null;
-            taskItem.RetryCount = 0;
+            taskItem.RetryCount += 1;
             taskItem.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
