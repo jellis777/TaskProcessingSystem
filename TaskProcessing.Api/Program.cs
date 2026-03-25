@@ -29,7 +29,9 @@ builder.Services.AddCors(options =>
     policy.WithOrigins(
         "http://localhost:5173",
         "http://localhost:5174",
-        "http://localhost:5175")
+        "http://localhost:5175",
+       "https://task-processing-api-b9e0byh7czhhg2da.centralus-01.azurewebsites.net"
+        )
         .AllowAnyHeader()
         .AllowAnyMethod();
 });
