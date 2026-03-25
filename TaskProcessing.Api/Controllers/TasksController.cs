@@ -68,13 +68,12 @@ namespace TaskProcessing.Api.Controllers
                 return Ok(task);
             }
 
-            if (errorMessage == "task not found")
+            if (errorMessage == "Task not found.")
             {
                 return NotFound();
             }
 
-
-            return BadRequest(errorMessage);
+            return BadRequest(new { error = errorMessage });
         }
 
 

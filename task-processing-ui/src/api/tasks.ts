@@ -47,3 +47,20 @@ export async function createTask(
 
   return response.json();
 }
+
+export async function retryTask(id: number): Promise<TaskDetails> {
+  const response = await fetch(`${API_BASE_URL}/${id}/retry`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+
+    const message =
+      errorBody?.error || errorBody?.title || 'Failed to retry task.';
+
+    throw new Error(message);
+  }
+
+  return response.json();
+}

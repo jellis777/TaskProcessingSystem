@@ -94,17 +94,12 @@ namespace TaskProcessing.Api.Services
                 return (null, "Only failed tasks can be retried.");
             }
 
-            if (taskItem.RetryCount >= taskItem.MaxRetries)
-            {
-                return (null, "This task has reached its maximum retry limit.");
-            }
-
             taskItem.Status = Status.Queued;
             taskItem.ErrorMessage = null;
             taskItem.ResultJson = null;
             taskItem.StartedAt = null;
             taskItem.CompletedAt = null;
-            taskItem.RetryCount += 1;
+            taskItem.RetryCount = 0;
             taskItem.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
