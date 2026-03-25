@@ -4,49 +4,27 @@ type StatusBadgeProps = {
   status: TaskStatus;
 };
 
-const getStatusStyles = (status: TaskStatus) => {
+function getStatusClasses(status: TaskStatus) {
   switch (status) {
     case 'Queued':
-      return {
-        backgroundColor: '#fffcd',
-        color: '#856404',
-      };
+      return 'bg-amber-100 text-amber-800';
     case 'Processing':
-      return {
-        backgroundColor: '#cce5ff',
-        color: '#004085',
-      };
+      return 'bg-blue-100 text-blue-800';
     case 'Completed':
-      return {
-        backgroundColor: '#d4edda',
-        color: '#155724',
-      };
+      return 'bg-emerald-100 text-emerald-800';
     case 'Failed':
-      return {
-        backgroundColor: '#f8d7da',
-        color: '#721c24',
-      };
+      return 'bg-red-100 text-red-800';
     default:
-      return {
-        backgroundColor: '#e2e3e5',
-        color: '#383d41',
-      };
+      return 'bg-slate-200 text-slate-700';
   }
-};
+}
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
-  const styles = getStatusStyles(status);
-
   return (
     <span
-      style={{
-        display: 'inline-block',
-        padding: '0.35rem 0.75rem',
-        borderRadius: '999px',
-        fontSize: '0.875rem',
-        fontWeight: 600,
-        ...styles,
-      }}
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+        status,
+      )}`}
     >
       {status}
     </span>

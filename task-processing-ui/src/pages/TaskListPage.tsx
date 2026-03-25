@@ -29,63 +29,62 @@ export default function TaskListPage() {
   }, []);
 
   if (isLoading) {
-    return <p>Loading tasks...</p>;
+    return <p className="text-sm text-slate-600">Loading tasks...</p>;
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {error}
+      </div>
+    );
   }
 
   if (tasks.length === 0) {
     return (
-      <div>
-        <h2>Tasks</h2>
-        <p>No tasks found yet.</p>
-        <Link to="/tasks/new">Create your first task</Link>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-2 text-2xl font-bold text-slate-900">Tasks</h2>
+        <p className="mb-4 text-sm text-slate-600">No tasks found yet.</p>
+        <Link
+          to="/tasks/new"
+          className="inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+        >
+          Create your first task
+        </Link>
       </div>
     );
   }
 
   return (
     <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ marginBottom: '0.5rem' }}>Tasks</h2>
-        <p>View and monitor background processing tasks.</p>
+      <div className="mb-6">
+        <h2 className="mb-2 text-3xl font-bold text-slate-900">Tasks</h2>
+        <p className="text-sm text-slate-600">
+          View and monitor background processing tasks.
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gap: '1rem' }}>
+      <div className="grid gap-4">
         {tasks.map((task) => (
           <Link
             key={task.id}
             to={`/tasks/${task.id}`}
-            style={{
-              display: 'block',
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              padding: '1rem',
-              border: '1px solid #e5e5e5',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
-            }}
+            className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md"
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '1rem',
-                marginBottom: '0.75rem',
-              }}
-            >
-              <h3 style={{ margin: 0 }}>{task.title}</h3>
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {task.title}
+              </h3>
               <StatusBadge status={task.status} />
             </div>
 
-            <div style={{ display: 'grid', gap: '0.35rem', color: '#555' }}>
+            <div className="grid gap-1 text-sm text-slate-600">
               <div>
-                <strong>Type:</strong> {task.type}
+                <span className="font-medium text-slate-800">Type:</span>{' '}
+                {task.type}
               </div>
               <div>
-                <strong>Created:</strong>{' '}
+                <span className="font-medium text-slate-800">Created:</span>{' '}
                 <FormattedDate value={task.createdAt} />
               </div>
             </div>

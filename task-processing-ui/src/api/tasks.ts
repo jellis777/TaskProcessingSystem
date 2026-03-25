@@ -39,7 +39,8 @@ export async function createTask(
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
-    const message = errorBody?.error || 'Failed to create task.';
+    const message =
+      errorBody?.error || errorBody?.title || 'Failed to create task.';
 
     throw new Error(message);
   }
