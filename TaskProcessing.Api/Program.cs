@@ -30,7 +30,7 @@ builder.Services.AddCors(options =>
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",
-       "https://task-processing-api-b9e0byh7czhhg2da.centralus-01.azurewebsites.net"
+       "https://wonderful-tree-0b6cc6d10.4.azurestaticapps.net"
         )
         .AllowAnyHeader()
         .AllowAnyMethod();
