@@ -13,6 +13,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TaskProcessing.Api\TaskProcessing.Api.csproj" />
+    <ProjectReference Include="..\TaskProcessing.Api\TaskProcessing.Api.csproj">
+      <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
   </ItemGroup>
+
+  <Target Name="RemoveApiAppSettingsFromPublish" BeforeTargets="_HandleFileConflictsForPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="$([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('/TaskProcessing.Api/appsettings.')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('\\TaskProcessing.Api\\appsettings.'))" />
+    </ItemGroup>
+  </Target>
 </Project>
