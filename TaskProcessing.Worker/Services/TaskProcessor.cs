@@ -24,6 +24,8 @@ namespace TaskProcessing.Worker.Services
             using var scope = _serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+
+
             var taskItem = await dbContext.Tasks
             .Where(t => t.Status == Status.Queued)
             .OrderBy(t => t.CreatedAt)

@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using TaskProcessing.Api.Data;
-using TaskProcessing.Api.Enums;
 using TaskProcessing.Worker.Interfaces;
 
 namespace TaskProcessing.Worker;
@@ -27,16 +24,22 @@ public class Worker : BackgroundService
                 using var scope = _serviceScopeFactory.CreateScope();
                 var taskProcessor = scope.ServiceProvider.GetRequiredService<ITaskProcessor>();
 
-                await taskProcessor.ProcessNextQueuedTaskAsync(stoppingToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while running the worker loop.");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
+
+        _logger.LogInformation("Task processing worker stopped at: {time}", DateTimeOffset.Now);
     }
-
-
 }

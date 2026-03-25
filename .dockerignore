@@ -1,0 +1,10 @@
+.git
+.gitignore
+**/bin
+**/obj
+**/.vs
+**/.vscode
+**/node_modules
+**/dist
+**/publish
+README.md
