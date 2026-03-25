@@ -4,6 +4,7 @@ import type { TaskDetails } from '../types/task';
 import { getTaskById, retryTask } from '../api/tasks';
 import FormattedDate from '../components/FormattedDate';
 import StatusBadge from '../components/StatusBadge';
+import { isActiveTaskStatus } from '../utils/taskStatus';
 
 export default function TaskDetailsPage() {
   const { id } = useParams();
@@ -40,7 +41,7 @@ export default function TaskDetailsPage() {
   }, [taskId]);
 
   async function handleRetry() {
-    if (!task) {
+    if (!task || !isActiveTaskStatus(task.status)) {
       return;
     }
 

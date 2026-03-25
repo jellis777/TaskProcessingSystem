@@ -1,12 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createTask } from '../api/tasks';
-
-const TASK_TYPE_OPTIONS = [
-  'report-generation',
-  'text-summary',
-  'file-processing',
-];
+import { TASK_TYPE_OPTIONS } from '../constants/taskTypes';
 
 export default function CreateTaskPage() {
   const navigate = useNavigate();
