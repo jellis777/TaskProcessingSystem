@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Local development secrets - never commit real connection strings
+appsettings.Development.json
+
 # User-specific files
 *.rsuser
 *.suo
