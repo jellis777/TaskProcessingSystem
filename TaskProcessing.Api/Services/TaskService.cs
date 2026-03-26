@@ -80,6 +80,33 @@ namespace TaskProcessing.Api.Services
 
         }
 
+        public async Task<bool> DeleteTaskAsync(int id)
+        {
+            var taskItem = await _context.Tasks
+            .Include(t => t.ProcessingLogs)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (taskItem is null)
+            {
+                return false;
+            }
+
+            if (taskItem.Status != Status.Completed && taskItem.Status != Status.Failed)
+            {
+                throw new InvalidOperationException("Only completed or failed tasks can be deleted.");
+            }
+
+            if (taskItem.ProcessingLogs?.Any() == true)
+            {
+                _context.TaskProcessingLogs.RemoveRange(taskItem.ProcessingLogs);
+            }
+
+            _context.Tasks.Remove(taskItem);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<(TaskDetailsDto? Task, string? ErrorMessage)> RetryTaskAsync(int id)
         {
             var taskItem = await _context.Tasks.FindAsync(id);

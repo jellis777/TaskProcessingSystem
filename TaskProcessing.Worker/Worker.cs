@@ -23,7 +23,7 @@ public class Worker : BackgroundService
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var taskProcessor = scope.ServiceProvider.GetRequiredService<ITaskProcessor>();
-
+                await taskProcessor.ProcessNextQueuedTaskAsync(stoppingToken);
             }
             catch (Exception ex)
             {

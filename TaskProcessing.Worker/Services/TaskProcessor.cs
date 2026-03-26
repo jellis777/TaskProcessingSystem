@@ -23,8 +23,18 @@ namespace TaskProcessing.Worker.Services
         {
             using var scope = _serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-
+            async Task TryAddLogAsync(int taskItemId, string message, string level)
+            {
+                try
+                {
+                    await AddLogAsync(dbContext, taskItemId, message, level, cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to persist processing log for task {TaskId}.", taskItemId);
+                }
+            }
 
             var taskItem = await dbContext.Tasks
             .Where(t => t.Status == Status.Queued)
@@ -37,16 +47,14 @@ namespace TaskProcessing.Worker.Services
                 return;
             }
 
-            await AddLogAsync(dbContext, taskItem.Id, "Task picked up by worker.", "Information", cancellationToken);
-
             _logger.LogInformation("Picked up task {TaskId} - {Title}", taskItem.Id, taskItem.Title);
 
             taskItem.Status = Status.Processing;
             taskItem.StartedAt = DateTime.UtcNow;
             taskItem.UpdatedAt = DateTime.UtcNow;
-
-            await AddLogAsync(dbContext, taskItem.Id, "Task marked as Processing.", "Information", cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
+            await TryAddLogAsync(taskItem.Id, "Task picked up by worker.", "Information");
+            await TryAddLogAsync(taskItem.Id, "Task marked as Processing.", "Information");
 
             try
             {
@@ -63,7 +71,8 @@ namespace TaskProcessing.Worker.Services
                 taskItem.CompletedAt = DateTime.UtcNow;
                 taskItem.UpdatedAt = DateTime.UtcNow;
 
-                await AddLogAsync(dbContext, taskItem.Id, "Task completed successfully.", "Information", cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await TryAddLogAsync(taskItem.Id, "Task completed successfully.", "Information");
                 _logger.LogInformation("Task {TaskId} completed successfully.", taskItem.Id);
             }
             catch (Exception ex)
@@ -79,12 +88,11 @@ namespace TaskProcessing.Worker.Services
                     taskItem.Status = Status.Queued;
                     taskItem.StartedAt = null;
 
-                    await AddLogAsync(
-                        dbContext,
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await TryAddLogAsync(
                         taskItem.Id,
                         $"Task failed: {ex.Message}. Requeued for retry attempt {taskItem.RetryCount} of {taskItem.MaxRetries}.",
-                        "Error",
-                        cancellationToken);
+                        "Error");
 
                     _logger.LogWarning(
                         ex,
@@ -98,12 +106,11 @@ namespace TaskProcessing.Worker.Services
                 {
                     taskItem.Status = Status.Failed;
 
-                    await AddLogAsync(
-                        dbContext,
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await TryAddLogAsync(
                         taskItem.Id,
                         $"Task failed: {ex.Message}. Max retry limit reached.",
-                        "Error",
-                        cancellationToken);
+                        "Error");
 
                     _logger.LogError(
                         ex,
@@ -112,11 +119,9 @@ namespace TaskProcessing.Worker.Services
 
                 }
 
-                await AddLogAsync(dbContext, taskItem.Id, $"Task failed: {ex.Message}", "Error", cancellationToken);
+                await TryAddLogAsync(taskItem.Id, $"Task failed: {ex.Message}", "Error");
                 _logger.LogError(ex, "Task {TaskId} failed during processing", taskItem.Id);
             }
-
-            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         private static async Task AddLogAsync(

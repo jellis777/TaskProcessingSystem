@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { TaskSummary } from '../types/task';
-import { getTasks } from '../api/tasks';
+import { getTasks, deleteTask } from '../api/tasks';
 import { Link } from 'react-router-dom';
 import StatusBadge from '../components/StatusBadge';
 import FormattedDate from '../components/FormattedDate';
@@ -55,6 +55,21 @@ export default function TaskListPage() {
     );
   }
 
+  const handleDelete = async (id: number) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this task?',
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteTask(id);
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : 'Failed to delete task');
+    }
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -75,7 +90,17 @@ export default function TaskListPage() {
               <h3 className="text-lg font-semibold text-slate-900">
                 {task.title}
               </h3>
-              <StatusBadge status={task.status} />
+              <div className="flex items-center justify-center gap-4">
+                <StatusBadge status={task.status} />
+                {(task.status === 'Completed' || task.status === 'Failed') && (
+                  <button
+                    onClick={() => handleDelete(task.id)}
+                    className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid gap-1 text-sm text-slate-600">

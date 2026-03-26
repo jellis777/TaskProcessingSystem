@@ -9,6 +9,7 @@ namespace TaskProcessing.Api.Interfaces
         Task<TaskDetailsDto> CreateTaskAsync(CreateTaskRequestDto request);
         Task<List<TaskSummaryDto>> GetTasksAsync();
         Task<TaskDetailsDto?> GetTaskByIdAsync(int id);
+        Task<bool> DeleteTaskAsync(int id);
         Task<(TaskDetailsDto? Task, string? ErrorMessage)> RetryTaskAsync(int id);
     }
 }

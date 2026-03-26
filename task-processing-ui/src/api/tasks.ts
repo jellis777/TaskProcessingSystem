@@ -48,6 +48,16 @@ export async function createTask(
   return response.json();
 }
 
+export async function deleteTask(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/${id}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Failed to delete task');
+  }
+}
+
 export async function retryTask(id: number): Promise<TaskDetails> {
   const response = await fetch(`${API_BASE_URL}/${id}/retry`, {
     method: 'POST',

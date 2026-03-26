@@ -76,7 +76,25 @@ namespace TaskProcessing.Api.Controllers
             return BadRequest(new { error = errorMessage });
         }
 
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteTask(int id)
+        {
+            try
+            {
+                var deleted = await _taskService.DeleteTaskAsync(id);
 
+                if (!deleted)
+                {
+                    return NotFound();
+                }
+
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
 
     }
